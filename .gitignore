@@ -1,5 +1,22 @@
-.idea
-*~
+# Android Studio and Gradle files generated locally
+.idea/
 *.iml
-.gradle
-build
+.gradle/
+build/
+
+# Local Android tooling and caches
+.android-sdk/
+.gradle-user/
+.tooling/
+.codex/
+local.properties
+
+# Local deliveries and backups
+backups/
+*.apk
+*.aab
+*.jks
+*.keystore
+
+# Editor temporary files
+*~
