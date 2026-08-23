@@ -2,18 +2,15 @@ package de.measite.contactmerger.ui.model;
 
 import android.content.Context;
 import android.content.Intent;
-import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -32,7 +29,7 @@ public class ModelSavePool {
     }
 
     protected ModelSavePool() {
-        executor = new ThreadPoolExecutor(0, Runtime.getRuntime().availableProcessors(), 1, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>(100));
+        executor = new ThreadPoolExecutor(0, Runtime.getRuntime().availableProcessors(), 1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(100));
     }
 
     public static ModelSavePool getInstance() {
@@ -42,53 +39,55 @@ public class ModelSavePool {
     public void update(final Context context, final long itimestamp, final long igeneration, final ArrayList<MergeContact> model) {
         final File path = context.getDatabasePath("contactsgraph");
         final File tmpModelFile = new File(path, "model-tmp-" + itimestamp + ".kryo.gz");
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    final byte data[] = ModelIO.generate(model);
+        executor.execute(() -> {
+            try {
+                final byte[] data = ModelIO.generate(model);
 
-                    long t = timestamp.get();
-                    if (t < itimestamp) {
-                        timestamp.compareAndSet(t, itimestamp);
-                        File oldTmpModelFile = new File(path, "model-tmp-" + t + ".kryo.gz");
-                        if (oldTmpModelFile.exists()) oldTmpModelFile.delete();
-                    }
+                long t = timestamp.get();
+                if (t < itimestamp) {
+                    timestamp.compareAndSet(t, itimestamp);
+                    File oldTmpModelFile = new File(path, "model-tmp-" + t + ".kryo.gz");
+                    if (oldTmpModelFile.exists()) oldTmpModelFile.delete();
+                }
 
-                    t = timestamp.get();
-                    if (t > itimestamp) {
-                        if (tmpModelFile.exists()) {
-                            tmpModelFile.delete();
-                        }
-                        return;
+                t = timestamp.get();
+                if (t > itimestamp) {
+                    if (tmpModelFile.exists()) {
+                        tmpModelFile.delete();
                     }
+                    return;
+                }
 
-                    if (t != itimestamp) {
-                        // concurrent update??
-                        update(context, itimestamp, igeneration, model);
-                        return;
-                    }
+                if (t != itimestamp) {
+                    // concurrent update??
+                    update(context, itimestamp, igeneration, model);
+                    return;
+                }
 
-                    writeLock.lock();
-                    // check the generation
-                    if (generation.get() > igeneration) {
-                        return;
-                    }
-                    generation.set(igeneration);
-                    DataOutputStream dos = new DataOutputStream(new FileOutputStream(tmpModelFile));
+                writeLock.lock();
+                // check the generation
+                if (generation.get() > igeneration) {
+                    return;
+                }
+                generation.set(igeneration);
+
+                try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(tmpModelFile))) {
                     dos.write(data);
                     dos.flush();
-                    dos.close();
-
-                    if (model.size() == 0) {
-                        Intent intent = new Intent("de.measite.contactmerger.ANALYSE");
-                        intent.putExtra("event", "finish");
-                        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-                    }
-                } catch (Exception e) {
-                } finally {
-                    try { writeLock.unlock(); } catch (Exception e) {}
                 }
+
+                if (model.isEmpty()) {
+                    Intent intent = new Intent("de.measite.contactmerger.ANALYSE");
+                    intent.putExtra("event", "finish");
+                    intent.putExtra("timestamp", System.currentTimeMillis()); // Ajout du timestamp à l'intent
+                    LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+                }
+            } catch (Exception ignored) {
+                // Gérer les exceptions ici si nécessaire
+            } finally {
+                try {
+                    writeLock.unlock();
+                } catch (Exception ignored) {}
             }
         });
     }

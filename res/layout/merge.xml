@@ -1,8 +1,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/merge_root"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/screen_background"
 >
 
     <!-- Top bar for progress -->
@@ -36,7 +38,7 @@
             android:visibility="visible"
             android:textSize="26sp"
             android:tag="remove"
-            android:textColor="#ff000000"
+            android:textColor="@color/on_surface"
             android:paddingTop="2sp"
             android:paddingLeft="3sp"
             android:paddingBottom="2sp"
@@ -46,6 +48,15 @@
         />
 
     </LinearLayout>
+
+    <Button
+        android:id="@+id/start_scan"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="@string/analyze_now" />
 
     <!-- layout for dummy text + list -->
     <ViewSwitcher
@@ -71,15 +82,6 @@
             android:layout_weight="0.2"
             android:text="Analyzing your contacts.\nThis can take a few minutes.\n"
             />
-
-        <Button
-            android:id="@+id/start_scan"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal|top"
-            android:text="Start analysis"
-            android:visibility="gone"
-        />
 
         <ImageView
             android:layout_margin="20dip"
@@ -114,21 +116,51 @@
         android:layout_height="wrap_content"
         android:divider="@android:color/transparent"
         android:dividerHeight="0dip"
-        android:background="#ffffff"
+        android:background="@color/surface_background"
         android:paddingBottom="2dip"
     />
 
-    <!-- Dummy text -->
-    <TextView
+    <!-- Empty analysis result -->
+    <LinearLayout
         android:id="@+id/all_done"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingTop="18sp"
-        android:textSize="20sp"
-        android:gravity="center"
-        android:lines="2"
-        android:text="Your contact list is clean. Congratulations!"
-    />
+        android:layout_height="match_parent"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="28dp"
+            android:paddingTop="18dp"
+            android:gravity="center"
+            android:lines="2"
+            android:text="@string/contact_list_clean"
+            android:textSize="20sp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="88dp"
+                android:layout_height="88dp"
+                android:contentDescription="@string/app_name"
+                android:src="@mipmap/ic_launcher" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:fontFamily="sans"
+                android:text="@string/app_name"
+                android:textColor="@color/heading_text"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
 
     </ViewSwitcher>
     </ViewSwitcher>

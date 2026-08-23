@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="screen_background">#121821</color>
+    <color name="surface_background">#1D2633</color>
+    <color name="surface_border">#3A4A5F</color>
+    <color name="heading_text">#E2ECFA</color>
+    <color name="body_text">#C6D3E3</color>
+    <color name="on_surface">#F1F5FA</color>
+    <color name="link_text">#8EC9FF</color>
+    <color name="action_bar_background">#102E52</color>
+    <color name="action_bar_text">#FFFFFFFF</color>
+    <color name="status_bar_background">#081C32</color>
+    <color name="navigation_bar_background">#121821</color>
+    <color name="accent">#7BB8F1</color>
+    <color name="image_placeholder">#59697D</color>
+    <color name="list_separator">#3D4E63</color>
+</resources>

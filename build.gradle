@@ -8,7 +8,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.1.0'
+        classpath 'com.android.tools.build:gradle:8.10.1'
     }
 }
 
@@ -21,14 +21,16 @@ repositories {
     }
 }
 
-apply plugin: 'android'
+apply plugin: 'com.android.application'
 
-sourceCompatibility = 1.7
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
 
 dependencies {
     implementation 'com.tundem.aboutlibraries:library:2.0.3@aar'
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'androidx.core:core:1.15.0'
     implementation 'org.ow2.asm:asm:4.0'
+    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
     implementation 'com.esotericsoftware.kryo:kryo:2.24.0'
     implementation 'org.apache.lucene:lucene-core:4.7.1'
     implementation 'org.apache.lucene:lucene-misc:4.7.1'
@@ -39,16 +41,13 @@ dependencies {
 
 android {
     namespace = "de.measite.contactmerger"
-    compileSdkVersion 34
+    compileSdk 36
     defaultConfig {
         applicationId "de.measite.contactmerger"
-        minSdkVersion 14
-        targetSdkVersion 34
+        minSdk 28
+        targetSdk 36
     }
 
-    dexOptions {
-        preDexLibraries = false
-    }
     packagingOptions {
         resources {
             excludes += ['META-INF/LICENSE.txt', 'META-INF/NOTICE.txt', 'META-INF/services/org.apache.lucene.codecs.Codec', 'META-INF/services/org.apache.lucene.codecs.PostingsFormat', 'META-INF/services/org.apache.lucene.codecs.DocValuesFormat']
@@ -56,12 +55,10 @@ android {
         }
     }
 
-
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
-
 
     sourceSets {
         main {
@@ -75,7 +72,9 @@ android {
         }
     }
 
-    signingConfigs { release { } }
+    signingConfigs {
+        release { }
+    }
 
     buildTypes {
         release {
@@ -84,9 +83,9 @@ android {
     }
 
     if (project.hasProperty('storeFile') &&
-        project.hasProperty('storePassword') &&
-        project.hasProperty('keyPassword') &&
-        project.hasProperty('keyAlias')) {
+            project.hasProperty('storePassword') &&
+            project.hasProperty('keyPassword') &&
+            project.hasProperty('keyAlias')) {
 
         android.signingConfigs.release.storeFile = file(storeFile)
         android.signingConfigs.release.storePassword = storePassword
@@ -95,6 +94,4 @@ android {
     } else {
         buildTypes.release.signingConfig = null
     }
-
 }
-

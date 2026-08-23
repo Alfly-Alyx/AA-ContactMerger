@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="2dip"
         android:layout_marginBottom="4dip"
-        android:background="#ffd1d1d1"
+        android:background="@color/list_separator"
         android:text=""
         android:visibility="gone" />
 
@@ -36,7 +36,7 @@
         android:layout_marginBottom="4dip"
         android:layout_marginLeft="4dip"
         android:layout_marginRight="4dip"
-        android:background="@android:color/darker_gray"
+        android:background="@color/image_placeholder"
         tools:ignore="ContentDescription" />
 
     <LinearLayout

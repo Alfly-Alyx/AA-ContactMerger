@@ -5,7 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.net.Uri;
 import android.provider.ContactsContract;
 import android.util.Log;
 
@@ -66,8 +65,6 @@ public class Database {
 
     private static SQLiteDatabase db = null;
 
-    private final static Uri URI = Uri.parse("content://" + Database.class.getCanonicalName() + "/actions");
-
     public static class Change {
         public long rawContactId1;
         public long rawContactId2;
@@ -85,7 +82,6 @@ public class Database {
 
         db.update("actionlog", values, "_id=" + actionid, null);
 
-        context.getContentResolver().notifyChange(URI, null);
     }
 
     public static synchronized long log(Context context, String description, Change changes[]) {
@@ -126,7 +122,6 @@ public class Database {
             db.insert("actionchanges", null, values);
         }
 
-        context.getContentResolver().notifyChange(URI, null);
         return id;
     }
 
@@ -135,9 +130,7 @@ public class Database {
             db = new MyDatabaseHelper(context).getWritableDatabase();
         }
 
-        Cursor cursor = db.query("actionlog", actionlogProjection, null, null, null, null, "timestamp DESC");
-        cursor.setNotificationUri(context.getContentResolver(), URI);
-        return cursor;
+        return db.query("actionlog", actionlogProjection, null, null, null, null, "timestamp DESC");
     }
 
     public static synchronized long[] getRawContactIds(Context context, long actionid) {

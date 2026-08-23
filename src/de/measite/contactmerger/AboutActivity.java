@@ -1,36 +1,37 @@
 package de.measite.contactmerger;
 
-import android.app.Activity;
 import android.app.ActionBar;
+import android.app.Activity;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.Gravity;
-import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
+import android.view.WindowInsets;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.view.View;
 
-import de.measite.contactmerger.R;
-import de.measite.contactmerger.ui.LogListAdapter;
-
-public class LogActivity extends Activity {
+public class AboutActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.log);
-        applyWindowInsets(findViewById(R.id.log_root));
+        setContentView(R.layout.about);
+        applyWindowInsets(findViewById(R.id.about_root));
+
         ActionBar actionBar = getActionBar();
         if (actionBar != null) {
             configureBackNavigation(actionBar);
         }
 
-        ListView list = (ListView)findViewById(R.id.action_list);
-        list.setAdapter(new LogListAdapter(getBaseContext()));
-        list.setEmptyView(findViewById(R.id.no_actions));
+        TextView version = findViewById(R.id.about_version);
+        version.setText(getString(R.string.about_version, getVersionName()));
+
+        Button close = findViewById(R.id.about_close);
+        close.setOnClickListener(view -> finish());
     }
 
     @Override
@@ -40,6 +41,14 @@ public class LogActivity extends Activity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private String getVersionName() {
+        try {
+            return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        } catch (PackageManager.NameNotFoundException exception) {
+            return "";
+        }
     }
 
     private void applyWindowInsets(final View root) {
@@ -76,7 +85,7 @@ public class LogActivity extends Activity {
         navigation.addView(back, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
-        TextView title = createActionBarText(getString(R.string.title_activity_log));
+        TextView title = createActionBarText(getString(R.string.about));
         title.setPadding(0, 0, padding, 0);
         navigation.addView(title, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT));
@@ -98,5 +107,4 @@ public class LogActivity extends Activity {
         view.setGravity(Gravity.CENTER_VERTICAL);
         return view;
     }
-
 }

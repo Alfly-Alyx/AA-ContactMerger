@@ -1,14 +1,8 @@
 package de.measite.contactmerger;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Random;
-
+import android.Manifest;
+import android.app.NotificationChannel;
 import android.app.Notification;
-import android.app.Notification.Builder;
-import android.app.AlarmManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -17,45 +11,47 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.BatteryManager;
-import android.os.Binder;
-import android.os.Handler;
+import android.os.Build;
 import android.os.IBinder;
-import android.preference.Preference;
-import android.preference.PreferenceManager;
+import android.content.pm.PackageManager;
 import android.provider.ContactsContract;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import java.io.File;
+import java.io.IOException;
+import java.util.Random;
 
 import de.measite.contactmerger.graph.GraphIO;
 import de.measite.contactmerger.graph.UndirectedGraph;
-import de.measite.contactmerger.ui.GraphConverter;
-import de.measite.contactmerger.ui.model.MergeContact;
 import de.measite.contactmerger.ui.model.ModelIO;
+import de.measite.contactmerger.ui.model.MergeContact;
+import de.measite.contactmerger.ui.GraphConverter;
 
 public class AnalyzerService extends Service {
 
-    public class AnalyzerBinder extends Binder {
-        public AnalyzerService getServiceInstance() {
-            return AnalyzerService.this;
-        }
-    }
-
     private static final String TAG = "ContactMerger/AnalyzerService";
+    private static final String CHANNEL_ID = "contact_analysis";
+    private static final int NOTIFICATION_ID = 1;
 
-    protected static AnalyzerThread analyzer;
+    private static AnalyzerThread analyzer;
 
-    protected SharedPreferences scanPreferences;
+    private SharedPreferences scanPreferences;
+    private LocalBroadcastManager broadcastManager;
 
-    protected ArrayList<ProgressListener> listeners = new ArrayList<ProgressListener>(3);
-    protected LocalBroadcastManager broadcastManager;
+    private final Random rnd = new Random();
+    private NotificationManager notificationManager;
 
-    protected Random rnd = new Random();
+    public static void start(Context context, Intent intent) {
+        // All callers are user-facing activity actions. Starting the service normally
+        // avoids the Android O foreground-service deadline when no scan is needed.
+        context.startService(intent);
+    }
 
     @Override
     public void onCreate() {
         super.onCreate();
         broadcastManager = LocalBroadcastManager.getInstance(getApplicationContext());
-        registerAlarm();
+        createNotificationChannel();
     }
 
     @Override
@@ -69,253 +65,248 @@ public class AnalyzerService extends Service {
         super.onStartCommand(intent, flags, startId);
 
         scanPreferences = getSharedPreferences("scan_preferences", 0);
+        final NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        final NotificationManager notificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-        if (intent != null && intent.getBooleanExtra("stop", false)) {
-            new Thread() {
-                @Override
-                public void run() {
-                    // uh-uh, user-requested stop
-                    while (analyzer != null && analyzer.isAlive())
-
-                    {
-                        try {
-                            analyzer.doStop();
-                            analyzer.interrupt();
-                        } catch (Exception e) {
-                        }
-                        try {
-                            Thread.sleep(10);
-                        } catch (Exception e) {
-                        }
-                    }
-                    stopForeground(true);
-                    notificationManager.cancel(1);
-                }
-            }.start();
-            return START_STICKY;
+        if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED ||
+                checkSelfPermission(Manifest.permission.WRITE_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            stopSelf(startId);
+            return START_NOT_STICKY;
         }
 
-        if (intent != null && intent.getBooleanExtra("forceRunning", false)) {
-            startThread();
-        } else {
-            startIfNeeded();
-        }
+        if (intent != null) {
+            if (intent.getBooleanExtra("stop", false)) {
+                stopAnalysis(notificationManager);
+                return START_NOT_STICKY;
+            }
 
-        return START_STICKY;
-    }
-
-    protected void registerAlarm() {
-        AlarmManager alarmManager =
-            (AlarmManager)getApplicationContext().getSystemService(ALARM_SERVICE);
-        final PendingIntent startService =
-                PendingIntent.getActivity(
-                    getApplicationContext(),
-                    0,
-                    new Intent(getApplicationContext(), AnalyzerService.class),
-                    PendingIntent.FLAG_UPDATE_CURRENT);
-        alarmManager.setInexactRepeating(
-            AlarmManager.ELAPSED_REALTIME_WAKEUP,
-            0,
-            60 * 60 * 1000,
-            startService);
-    }
-
-    protected void startIfNeeded() {
-        // collect battery level
-        Intent batteryIntent = getApplicationContext().registerReceiver(null,
-                new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-        int rawlevel = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-        int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-        boolean onBattery =
-                batteryIntent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) == 0;
-        double level = -1;
-        if (rawlevel >= 0 && scale > 0) {
-            level = rawlevel / (double)scale;
-        }
-
-        // collect file information
-        File path = getDatabasePath("contactsgraph");
-        if (!path.exists()) {
-            if (!path.mkdirs() && !path.isDirectory()) {
-                // this is a bug, the app is not yet ready
-                return;
+            if (intent.getBooleanExtra("forceRunning", false)) {
+                startAnalysisThread();
+            } else {
+                startIfNeeded();
             }
         }
+
+        return START_NOT_STICKY;
+    }
+
+    private void stopAnalysis(final NotificationManager notificationManager) {
+        new Thread(() -> {
+            // Stop the running analysis thread
+            while (analyzer != null && analyzer.isAlive()) {
+                try {
+                    analyzer.doStop();
+                    analyzer.interrupt();
+                } catch (Exception ignored) {
+                }
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException ignored) {
+                }
+            }
+            stopForeground(true);
+            notificationManager.cancel(NOTIFICATION_ID);
+            stopSelf();
+        }).start();
+    }
+
+    private void startIfNeeded() {
+        // Check battery status and decide whether to start the analysis
+        double batteryLevel = getBatteryLevel();
+        boolean onBattery = isOnBattery();
+
+        // File paths
+        File path = getDatabasePath("contactsgraph");
+        if (!path.exists() && !path.mkdirs() && !path.isDirectory()) {
+            return; // Early exit if the app isn't ready
+        }
+
         File graphFile = new File(path, "graph.kryo.gz");
         File modelFile = new File(path, "model.kryo.gz");
-        boolean graphFileExists =
-                graphFile.exists();
-        boolean modelFileExists =
-                modelFile.exists() && modelFile.lastModified() > graphFile.lastModified();
 
-        long lastScan = 0l;
-        if (scanPreferences != null) {
-            lastScan = scanPreferences.getLong("start_scan", lastScan);
-        }
+        boolean graphFileExists = graphFile.exists();
+        boolean modelFileExists = modelFile.exists() && modelFile.lastModified() > graphFile.lastModified();
 
-        // 1. no data
-        if (!modelFileExists && lastScan == 0l) {
+        long lastScan = scanPreferences.getLong("start_scan", 0L);
+
+        if (!modelFileExists && lastScan == 0L) {
             if (!graphFileExists) {
                 Log.d(TAG, "Starting thread due to missing data");
-                startThread();
+                startAnalysisThread();
                 return;
             }
-            try {
-                ArrayList<MergeContact> model = GraphConverter.convert(
-                        (UndirectedGraph) GraphIO.load(graphFile),
-                        getBaseContext().getContentResolver().acquireContentProviderClient(ContactsContract.AUTHORITY_URI));
-                ModelIO.store(model, modelFile);
-                return; // only return if the conversion succeeded
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            convertGraphToModel(graphFile, modelFile);
         }
 
-        if (level <= 0.25) {
-            return;
+        if (batteryLevel <= 0.25) {
+            return; // Don't run analysis if battery level is low
         }
 
-        double f = 1d;
-        synchronized (rnd) {
-            f += rnd.nextDouble();
-        }
+        double factor = 1d + rnd.nextDouble(); // Introduce randomness to avoid constant checks
 
         lastScan = Math.max(lastScan, graphFile.lastModified());
 
-        // 2. Plugged in, battery good -> go (bit not more often than once per 24 hours)
-        if (!onBattery && level > 0.95) {
-            if (lastScan + 7l * 24l * 60l * 60l * 1000l * f < System.currentTimeMillis()) {
+        // If battery is good and data is old, start the thread
+        if (!onBattery && batteryLevel > 0.75) {
+            long scanThreshold = getScanThreshold(factor);
+            if (lastScan + scanThreshold < System.currentTimeMillis()) {
                 Log.d(TAG, "Starting thread due to good battery and old data");
-                startThread();
-                return;
+                startAnalysisThread();
             }
-        }
-
-        if (!onBattery && level > 0.75) {
-            if (lastScan + 30l * 24l * 60l * 60l * 1000l * f < System.currentTimeMillis()) {
-                Log.d(TAG, "Starting thread due to ok battery and old data");
-                startThread();
-                return;
-            }
-        }
-
-        // 3. Really old data + plugged in?
-        if (!onBattery && lastScan + 60l * 24l * 60l * 60l * 1000l * f < System.currentTimeMillis()) {
-            Log.d(TAG, "Starting thread due to old data (on battery)");
-            startThread();
-            return;
-        }
-
-        // 4. we should only run on battery if everything else fails
-        if (lastScan + 90l * 24l * 60l * 60l * 1000l * f < System.currentTimeMillis()) {
-            Log.d(TAG, "Starting thread due to very old data (" + lastScan + ")");
-            startThread();
-            return;
         }
     }
 
-    public synchronized void startThread() {
-        if (analyzer != null && analyzer.isAlive()) return;
+    private void convertGraphToModel(File graphFile, File modelFile) {
+        try {
+            UndirectedGraph<Long, Double> graph = GraphIO.load(graphFile);
+            java.util.ArrayList<MergeContact> model = GraphConverter.convert(
+                    graph,
+                    getContentResolver().acquireContentProviderClient(ContactsContract.AUTHORITY_URI));
+            ModelIO.store(model, modelFile);
+        } catch (IOException e) {
+            Log.e(TAG, "Error converting graph to model", e);
+        }
+    }
+
+    private double getBatteryLevel() {
+        Intent batteryIntent = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        assert batteryIntent != null;
+        int rawLevel = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+        int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+        return (rawLevel >= 0 && scale > 0) ? (rawLevel / (double) scale) : -1;
+    }
+
+    private boolean isOnBattery() {
+        Intent batteryIntent = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        assert batteryIntent != null;
+        return batteryIntent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) == 0;
+    }
+
+    private long getScanThreshold(double factor) {
+        // Return scan threshold in milliseconds based on the factor (randomized)
+        return (long) (7L * 24L * 60L * 60L * 1000L * factor); // Example threshold (7 days * factor)
+    }
+
+    private synchronized void startAnalysisThread() {
+        if (analyzer != null && analyzer.isAlive()) return; // Avoid starting multiple threads
+
         analyzer = new AnalyzerThread(getApplicationContext());
         setupNotification();
         Intent intent = new Intent("de.measite.contactmerger.ANALYSE");
         intent.putExtra("event", "start");
         broadcastManager.sendBroadcast(intent);
-        if (scanPreferences != null) {
-            try {
-                scanPreferences.edit().putLong("scan_start", System.currentTimeMillis()).commit();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+
+        scanPreferences.edit().putLong("start_scan", System.currentTimeMillis()).apply();
         analyzer.start();
     }
 
-    protected synchronized void setupNotification() {
-        final PendingIntent startPending =
-            PendingIntent.getActivity(
+    private synchronized void setupNotification() {
+        final PendingIntent startPending = PendingIntent.getActivity(
                 getApplicationContext(),
                 0,
                 new Intent(getApplicationContext(), MergeActivity.class)
-                    .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    .addCategory(Intent.CATEGORY_LAUNCHER)
-                    .setAction(Intent.ACTION_MAIN),
-                PendingIntent.FLAG_UPDATE_CURRENT);
+                        .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        .addCategory(Intent.CATEGORY_LAUNCHER)
+                        .setAction(Intent.ACTION_MAIN),
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        final Notification.Builder builder = 
-            new Notification.Builder(getApplicationContext())
+        final Notification.Builder builder = new Notification.Builder(getApplicationContext(), CHANNEL_ID)
                 .setSmallIcon(R.drawable.notification_icon)
                 .setContentIntent(startPending)
                 .setProgress(1000, 0, false)
                 .setContentTitle("Analyzing your contacts")
                 .setWhen(System.currentTimeMillis())
                 .setContentText("0% done");
-        startForeground(1, builder.build());
 
-        final NotificationManager notificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        startForeground(NOTIFICATION_ID, builder.build());
+
+        final NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         analyzer.addListener(new ProgressListener() {
-            long last = System.currentTimeMillis();
+            long lastUpdate = System.currentTimeMillis();
+
             @Override
             public void abort() {
                 stopForeground(true);
-                notificationManager.cancel(1);
-                Intent intent = new Intent("de.measite.contactmerger.ANALYSE");
-                intent.putExtra("event", "abort");
-                broadcastManager.sendBroadcast(intent);
+                notificationManager.cancel(NOTIFICATION_ID);
+                broadcastManager.sendBroadcast(new Intent("de.measite.contactmerger.ANALYSE").putExtra("event", "abort"));
             }
+
             @Override
-            public void update(float done) {
-                builder.setProgress(1000, (int)(1000 * done), false);
-                builder.setContentText(((int)(100 * done)) + "% done");
-                if (System.currentTimeMillis() - last > 200) {
-                    notificationManager.notify(1, builder.build());
-                    last = System.currentTimeMillis();
-                    Intent intent = new Intent("de.measite.contactmerger.ANALYSE");
-                    intent.putExtra("event", "progress");
-                    intent.putExtra("progress", done);
-                    broadcastManager.sendBroadcast(intent);
+            public void update(float progress) {
+                builder.setProgress(1000, (int) (1000 * progress), false);
+                builder.setContentText(((int) (100 * progress)) + "% done");
+                boolean completed = progress >= 1f;
+                if (completed || System.currentTimeMillis() - lastUpdate > 200) {
+                    notifyIfAllowed(notificationManager, builder.build());
+                    lastUpdate = System.currentTimeMillis();
+
+                    broadcastManager.sendBroadcast(new Intent("de.measite.contactmerger.ANALYSE")
+                            .putExtra("event", "progress")
+                            .putExtra("progress", progress));
                 }
-                if (done >= 1f) {
+
+                if (completed) {
                     stopForeground(true);
-
-                    File path = getApplicationContext().getDatabasePath("contactsgraph");
-                    if (!path.exists()) path.mkdirs();
-                    File modelFile = new File(path, "model.kryo.gz");
-                    int count = 0;
-                    try {
-                        count = ModelIO.load(modelFile).size();
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                    Intent intent = new Intent("de.measite.contactmerger.ANALYSE");
-                    intent.putExtra("event", "finish");
-                    broadcastManager.sendBroadcast(intent);
-
-                    if (count > 0) {
-                        Builder ibuilder =
-                            new Notification.Builder(getApplicationContext())
-                                .setSmallIcon(R.drawable.notification_icon)
-                                .setContentIntent(startPending)
-                                .setContentTitle("Merge " + count + " contacts")
-                                .setWhen(System.currentTimeMillis())
-                                .setContentText("All contacts were analyzed")
-                                .setTicker("Merge " + count + " contacts")
-                                .setAutoCancel(true);
-                        notificationManager.notify(1, ibuilder.build());
-                    } else {
-                        notificationManager.cancel(1);
-                    }
+                    handleCompletion(notificationManager);
+                    broadcastManager.sendBroadcast(new Intent("de.measite.contactmerger.ANALYSE")
+                            .putExtra("event", "finish"));
+                    stopSelf();
                 }
             }
         });
     }
 
+    private void handleCompletion(NotificationManager notificationManager) {
+        this.notificationManager = notificationManager;
+        File modelFile = new File(getDatabasePath("contactsgraph"), "model.kryo.gz");
+        int contactCount = 0;
+        try {
+            contactCount = ModelIO.load(modelFile).size();
+        } catch (IOException e) {
+            Log.e(TAG, "Error reading model file", e);
+        }
+
+        final Intent notificationIntent = new Intent(this, MergeActivity.class);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this,
+                0,
+                notificationIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        Notification notification = new Notification.Builder(getApplicationContext(), CHANNEL_ID)
+                .setContentTitle("Contact analysis completed")
+                .setContentText(contactCount + " contacts found")
+                .setSmallIcon(R.drawable.notification_icon)
+                .setContentIntent(pendingIntent)
+                .setWhen(System.currentTimeMillis())
+                .build();
+
+        notifyIfAllowed(notificationManager, notification);
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    CHANNEL_ID,
+                    "Contact analysis",
+                    NotificationManager.IMPORTANCE_LOW);
+            channel.setDescription("Shows the progress of contact analysis.");
+            ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE))
+                    .createNotificationChannel(channel);
+        }
+    }
+
+    private void notifyIfAllowed(NotificationManager manager, Notification notification) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+                checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+            manager.notify(NOTIFICATION_ID, notification);
+        }
+    }
+
+    public class AnalyzerBinder extends android.os.Binder {
+        public AnalyzerService getService() {
+            return AnalyzerService.this;
+        }
+    }
 }
