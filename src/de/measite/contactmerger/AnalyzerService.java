@@ -29,7 +29,7 @@ import de.measite.contactmerger.ui.GraphConverter;
 
 public class AnalyzerService extends Service {
 
-    private static final String TAG = "ContactMerger/AnalyzerService";
+    private static final String TAG = "AA-ContactMerger/AnalyzerService";
     private static final String CHANNEL_ID = "contact_analysis";
     private static final int NOTIFICATION_ID = 1;
 

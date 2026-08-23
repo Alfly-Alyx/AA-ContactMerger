@@ -1,18 +1,18 @@
-# Contact-Merger
+# AA-ContactMerger
 
 <p align="center">
-  <img src="art/logo-512x512.png" alt="Contact-Merger icon" width="128" />
+  <img src="res/drawable/icon.png" alt="AA-ContactMerger icon" width="128" />
 </p>
 
 <p align="center">
   <strong>Find duplicate contacts, review them with confidence, and merge them on your terms.</strong>
 </p>
 
-Contact-Merger is a lightweight Android application that analyses the device contact list to identify likely duplicates. It gives you a clear list to review before merging anything, so your address book stays tidy without losing control over your data.
+AA-ContactMerger is a lightweight Android application that analyses the device contact list to identify likely duplicates. It gives you a clear list to review before merging anything, so your address book stays tidy without losing control over your data.
 
 ## A project with a story
 
-Contact-Merger was originally created by [René Treffer](https://github.com/rtreffer) and published as [ContactMerger](https://github.com/rtreffer/ContactMerger).
+The original ContactMerger application was created by [René Treffer](https://github.com/rtreffer) and published as [ContactMerger](https://github.com/rtreffer/ContactMerger).
 
 This repository continues that work. It modernises the original application for current Android devices while preserving its straightforward purpose: helping people clean up duplicate contacts locally, simply, and respectfully.
 
@@ -69,4 +69,4 @@ The generated APK is available under `build/outputs/apk/debug/`.
 - Original project and original creator: [René Treffer](https://github.com/rtreffer/ContactMerger)
 - Current modernised edition: [Alfly-Alyx](https://github.com/Alfly-Alyx/AA-ContactMerger)
 
-Contact-Merger is available under the [Apache License, Version 2.0](LICENSE.txt).
+AA-ContactMerger is available under the [Apache License, Version 2.0](LICENSE.txt).

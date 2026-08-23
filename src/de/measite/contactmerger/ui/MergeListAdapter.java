@@ -46,7 +46,7 @@ import de.measite.contactmerger.util.ShiftedExpireLRU;
 
 public class MergeListAdapter extends BaseAdapter implements OnClickListener {
 
-    protected static final String TAG = "ContactMerger/MergeListAdapter";
+    protected static final String TAG = "AA-ContactMerger/MergeListAdapter";
     protected Thread transform;
     protected ArrayList<MergeContact> model;
     protected ContentProviderClient provider;

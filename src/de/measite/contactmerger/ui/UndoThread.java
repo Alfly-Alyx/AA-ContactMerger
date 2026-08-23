@@ -16,7 +16,7 @@ public class UndoThread extends Thread {
     protected final Context context;
     protected final long actionid;
     protected final ContactDataMapper mapper;
-    protected final static String TAG = "ContactMerger/Undo";
+    protected final static String TAG = "AA-ContactMerger/Undo";
 
     public UndoThread(Context context, ContactDataMapper mapper, long actionid) {
         this.context = context;

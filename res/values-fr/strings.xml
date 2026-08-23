@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Contact-Merger</string>
-    <string name="title_activity_merge">Contact-Merger</string>
+    <string name="app_name">AA-ContactMerger</string>
+    <string name="title_activity_merge">AA-ContactMerger</string>
     <string name="analyze_now">Analyser maintenant</string>
     <string name="analyze_again">Nouvelle analyse</string>
     <string name="contact_list_clean">Votre liste de contacts est propre. Félicitations !</string>
@@ -15,10 +15,10 @@
     <string name="about_creator_heading">Créateur original</string>
     <string name="about_creator_body">René Treffer\nhttps://github.com/rtreffer\n\nProjet d’origine\nhttps://github.com/rtreffer/ContactMerger</string>
     <string name="about_fork_heading">Cette version</string>
-    <string name="about_fork_body">AA-1.0-beta_1, par Alfly-Alyx.\nhttps://github.com/Alfly-Alyx/ContactMerger</string>
+    <string name="about_fork_body">AA-1.0-beta_1, par Alfly-Alyx.\nhttps://github.com/Alfly-Alyx/AA-ContactMerger</string>
     <string name="about_updates_heading">Évolutions depuis le projet d’origine</string>
     <string name="about_updates_body">• Compatibilité étendue d’Android 9 à Android 16.\n• Analyse des doublons et bouton d’analyse sur l’accueil.\n• Historique des fusions et navigation améliorée.\n• Correctifs Android 16 : permissions, affichage et progression.\n• Adaptation automatique au thème clair ou sombre du système.\n• Textes adaptés à la langue du téléphone.</string>
     <string name="about_close">Retour à l’accueil</string>
-    <string name="project_about_message">Contact-Merger AA-1.0-beta_1\n\nCréateur de l’application : René Treffer\nhttps://github.com/rtreffer\n\nProjet d’origine :\nhttps://github.com/rtreffer/ContactMerger\n\nAA-1.0-beta_1 par Alfly-Alyx :\nhttps://github.com/Alfly-Alyx/ContactMerger</string>
+    <string name="project_about_message">AA-ContactMerger AA-1.0-beta_1\n\nCréateur de l’application : René Treffer\nhttps://github.com/rtreffer\n\nProjet d’origine :\nhttps://github.com/rtreffer/ContactMerger\n\nAA-1.0-beta_1 par Alfly-Alyx :\nhttps://github.com/Alfly-Alyx/AA-ContactMerger</string>
     <string name="back_to_main">← Retour</string>
 </resources>
