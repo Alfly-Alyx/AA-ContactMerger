@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="aboutLibraries_description_text">AA-ContactMerger s’appuie sur un projet créé par\nRené Treffer</string>
+    <string name="aboutLibraries_description_text">Contact Merger s’appuie sur un projet créé par\nRené Treffer</string>
 
     <!-- lucene licence -->
     <string name="library_Lucene_author">Apache Lucene</string>

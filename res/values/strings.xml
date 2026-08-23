@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">AA-ContactMerger</string>
-    <string name="title_activity_merge">AA-ContactMerger</string>
+    <string name="app_name">Contact Merger</string>
+    <string name="title_activity_merge">Contact Merger</string>
     <string name="fa_check"></string>
     <string name="fa_times"></string>
     <string name="fa_ban"></string>
@@ -20,7 +20,7 @@
     <string name="about_updates_heading">Changes from the original project</string>
     <string name="about_updates_body">• Compatibility extended from Android 9 to Android 16.\n• Duplicate analysis and an analysis button on the home screen.\n• Merge history and improved navigation.\n• Android 16 fixes for permissions, display, and progress.\n• Automatic adaptation to the system light or dark theme.\n• Text adapted to the phone language.</string>
     <string name="about_close">Back to home</string>
-    <string name="project_about_message">AA-ContactMerger AA-1.0-beta_1\n\nCreator: René Treffer\nhttps://github.com/rtreffer\n\nOriginal project:\nhttps://github.com/rtreffer/ContactMerger\n\nAA-1.0-beta_1 by Alfly-Alyx:\nhttps://github.com/Alfly-Alyx/AA-ContactMerger</string>
+    <string name="project_about_message">Contact Merger AA-1.0-beta_1\n\nCreator: René Treffer\nhttps://github.com/rtreffer\n\nOriginal project:\nhttps://github.com/rtreffer/ContactMerger\n\nAA-1.0-beta_1 by Alfly-Alyx:\nhttps://github.com/Alfly-Alyx/AA-ContactMerger</string>
     <string name="back_to_main">← Back</string>
     <string name="action_log">Merge history</string>
     <string name="title_activity_log">Merge history</string>

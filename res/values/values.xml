@@ -3,7 +3,7 @@
 
     <string name="aboutLibraries_description_showIcon">true</string>
     <string name="aboutLibraries_description_showVersion">true</string>
-    <string name="aboutLibraries_description_text">AA-ContactMerger is based on a project created by&#10;René Treffer&#10;:</string>
+    <string name="aboutLibraries_description_text">Contact Merger is based on a project created by&#10;René Treffer&#10;:</string>
 
     <!-- lucene licence -->
     <string name="define_Lucene"></string>
