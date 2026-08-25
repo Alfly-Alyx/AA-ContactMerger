@@ -18,11 +18,11 @@ This repository continues that work. It modernises the original application for 
 
 The current refreshed edition is maintained by [Alfly-Alyx](https://github.com/Alfly-Alyx).
 
-## AA-1.0-beta_1
+## AA-1.0-beta_3
 
-AA-1.0-beta_1 is the first beta on the road to version 1.0. It brings the project back to life with a modern Android foundation and a more polished daily experience.
+AA-1.0-beta_3 continues the road to version 1.0 with a clearer welcome screen, French progress messages, and a refined analysis experience.
 
-- **Android 9 to Android 16 support** — minimum API level 28, target API level 36.
+- **Android 6 to Android 16 support** — minimum API level 23, target API level 36.
 - **System language support** — key messages follow the language selected on the device.
 - **Light and dark themes** — the interface automatically follows the Android system theme.
 - **Clearer analysis flow** — an always-available analysis button and more reliable progress handling.
@@ -42,7 +42,7 @@ The application analyses contacts on the device. It does not require an online a
 
 ## Project status
 
-This is a **beta release**. The goal of AA-1.0-beta_1 is to validate the refreshed application on modern Android devices before the stable AA-1.0 release.
+This is a **beta release**. The goal of AA-1.0-beta_3 is to validate the refreshed application on Android 6 through Android 16 before the stable AA-1.0 release.
 
 Compatibility with Android 17 has not yet been validated.
 

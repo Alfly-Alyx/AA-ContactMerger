@@ -40,11 +40,11 @@ dependencies {
 }
 
 android {
-    namespace = "de.measite.contactmerger"
+    namespace = "com.alyx.contactmerger"
     compileSdk 36
     defaultConfig {
-        applicationId "de.measite.contactmerger"
-        minSdk 28
+        applicationId "com.alyx.contactmerger"
+        minSdk 23
         targetSdk 36
     }
 
