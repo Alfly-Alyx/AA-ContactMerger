@@ -28,11 +28,11 @@
     <string name="about_creator_heading">Original creator</string>
     <string name="about_creator_body">René Treffer\nhttps://github.com/rtreffer\n\nOriginal project\nhttps://github.com/rtreffer/ContactMerger</string>
     <string name="about_fork_heading">This version</string>
-    <string name="about_fork_body">AA-1.0-beta_3, by Alfly-Alyx.\nhttps://github.com/Alfly-Alyx/AA-ContactMerger</string>
+    <string name="about_fork_body">AA-1.0, by Alfly-Alyx.\nhttps://github.com/Alfly-Alyx/AA-ContactMerger</string>
     <string name="about_updates_heading">Changes from the original project</string>
     <string name="about_updates_body">• Compatibility extended from Android 6 to Android 16.\n• Duplicate analysis and an analysis button on the home screen.\n• Merge history and improved navigation.\n• Android 16 fixes for permissions, display, and progress.\n• Automatic adaptation to the system light or dark theme.\n• Text adapted to the phone language.</string>
     <string name="about_close">Back to home</string>
-    <string name="project_about_message">Contact Merger AA-1.0-beta_3\n\nCreator: René Treffer\nhttps://github.com/rtreffer\n\nOriginal project:\nhttps://github.com/rtreffer/ContactMerger\n\nAA-1.0-beta_3 by Alfly-Alyx:\nhttps://github.com/Alfly-Alyx/AA-ContactMerger</string>
+    <string name="project_about_message">Contact Merger AA-1.0\n\nCreator: René Treffer\nhttps://github.com/rtreffer\n\nOriginal project:\nhttps://github.com/rtreffer/ContactMerger\n\nAA-1.0 by Alfly-Alyx:\nhttps://github.com/Alfly-Alyx/AA-ContactMerger</string>
     <string name="back_to_main">← Back</string>
     <string name="action_log">Merge history</string>
     <string name="title_activity_log">Merge history</string>

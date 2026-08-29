@@ -32,11 +32,17 @@ dependencies {
     implementation 'org.ow2.asm:asm:4.0'
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
     implementation 'com.esotericsoftware.kryo:kryo:2.24.0'
-    implementation 'org.apache.lucene:lucene-core:4.7.1'
+    implementation files('libs/lucene-core-4.7.1-android.jar')
     implementation 'org.apache.lucene:lucene-misc:4.7.1'
     implementation 'org.apache.lucene:lucene-queries:4.7.1'
     implementation 'org.apache.lucene:lucene-analyzers-common:4.7.1'
     implementation 'org.apache.lucene:lucene-codecs:4.7.1'
+}
+
+configurations.configureEach {
+    // The local Lucene core omits SPIClassIterator so the Android-specific
+    // implementation in src/ can load service definitions from app assets.
+    exclude group: 'org.apache.lucene', module: 'lucene-core'
 }
 
 android {
@@ -82,15 +88,17 @@ android {
         }
     }
 
-    if (project.hasProperty('storeFile') &&
-            project.hasProperty('storePassword') &&
-            project.hasProperty('keyPassword') &&
-            project.hasProperty('keyAlias')) {
+    def signingPropertiesFile = rootProject.file('signing.properties')
+    def signingProperties = new Properties()
+    if (signingPropertiesFile.exists()) {
+        signingPropertiesFile.withInputStream { signingProperties.load(it) }
+    }
 
-        android.signingConfigs.release.storeFile = file(storeFile)
-        android.signingConfigs.release.storePassword = storePassword
-        android.signingConfigs.release.keyPassword = keyPassword
-        android.signingConfigs.release.keyAlias = keyAlias
+    if (!signingProperties.isEmpty()) {
+        android.signingConfigs.release.storeFile = rootProject.file(signingProperties.getProperty('storeFile'))
+        android.signingConfigs.release.storePassword = signingProperties.getProperty('storePassword')
+        android.signingConfigs.release.keyPassword = signingProperties.getProperty('keyPassword')
+        android.signingConfigs.release.keyAlias = signingProperties.getProperty('keyAlias')
     } else {
         buildTypes.release.signingConfig = null
     }

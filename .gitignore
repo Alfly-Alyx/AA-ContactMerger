@@ -10,6 +10,8 @@ build/
 .tooling/
 .codex/
 local.properties
+.signing/
+signing.properties
 
 # Local deliveries and backups
 backups/
